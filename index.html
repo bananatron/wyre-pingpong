@@ -90,11 +90,27 @@
                 display: flex;
                 align-items: center;
             }
-            #add-entry {
-                height: 50px;
+            #add-entry { height: 50px; }
+            .view-history { cursor: pointer; }
+            .match-history {
+                position: fixed;
+                right: 0; top: 0;
+                width: 70vw; height: 100vh;
+                background-color: white;
+                z-index: 2;
+                padding: 10px;
+                overflow: auto;
             }
-            .view-history {
-                cursor: not-allowed;
+            .overlay {
+                position: fixed;
+                z-index: 1;
+                left: 0; top: 0;
+                width: 100vw; height: 100vh;
+                background-color: rgba(0, 0, 0, 0.7);
+                cursor: pointer;
+            }
+            .match-date {
+                font-size: 0.8rem;
             }
         </style>
 
@@ -124,16 +140,37 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(player, index) in standing.players">
+                    <tr v-for="(player, player_id, index) in standing.players" :data-id="player_id">
                         <td style="width: 40px; text-align: center;"><b>{{index+1}}</b></td>
                         <td>{{player['Name']}}</td>
                         <td>{{player['Matches Count']}}</td>
                         <td>{{Math.floor(player['Win Percentage'])}}%</td>
-                        <td class="view-history">📖</td>
+                        <td class="view-history" v-on:click="showMatchHistory(player_id)">📖</td>
                     </tr>
                 </tbody>
               </table>
+
+              <div class="overlay" v-if="history.show == true" v-on:click="closeMatchHistory"></div>
+              <section class="match-history" v-if="history.show == true">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Participants</th>
+                            <th>Winner</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(match, index) in history.matches">
+                            <td class="match-date">{{match['Match Date']}}</td>
+                            <td>{{match['Participants'].join(' vs. ')}}</td>
+                            <td>{{match['Winner'][0]}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+               </section>
             </div>
+
 
             <div id="airtable-form">
                 <button id="back-form" class="btn">Back</button>
