@@ -1,2 +1,2 @@
 # Wyre Ping Pong Standings
-### lol
+Wyre org ping pong standings table.
