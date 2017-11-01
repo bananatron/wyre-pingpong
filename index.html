@@ -91,16 +91,30 @@
                 align-items: center;
             }
             #add-entry { height: 50px; }
-            .view-history { cursor: pointer; }
+            .view-history {
+                text-align: right;
+                font-size: 12px;
+                font-weight: bold;
+                color: rgba(0, 0, 0, 0.5);
+                cursor: pointer;
+            }
+            .view-history:hover {
+                color: rgba(0, 0, 0, 1);
+            }
+            .view-history.is-disabled { opacity: 0.5; pointer-events: none; }
             .match-history {
                 position: fixed;
-                right: 0; top: 0;
+                right: -100%; top: 0;
                 width: 70vw; height: 100vh;
                 background-color: white;
                 z-index: 2;
                 padding: 10px;
                 overflow: auto;
                 max-width: 700px;
+                transition: right 0.1s ease-in-out;
+            }
+            .match-history.is-visible {
+                right: 0;
             }
             .overlay {
                 position: fixed;
@@ -146,13 +160,17 @@
                         <td>{{player['Name']}}</td>
                         <td>{{player['Matches Count']}}</td>
                         <td>{{Math.floor(player['Win Percentage'])}}%</td>
-                        <td class="view-history" v-on:click="showMatchHistory(player_id)">📖</td>
+                        <td class="view-history"
+                            v-on:click="showMatchHistory(player_id)"
+                            v-bind:class="{ 'is-disabled': history.loading == true }">View Match History</td>
                     </tr>
                 </tbody>
               </table>
 
-              <div class="overlay" v-if="history.show == true" v-on:click="closeMatchHistory"></div>
-              <section class="match-history" v-if="history.show == true">
+              <div class="overlay"
+                   v-if="history.show == true"
+                   v-on:click="closeMatchHistory"></div>
+              <section class="match-history" v-bind:class="{ 'is-visible': history.show == true }">
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -182,6 +200,8 @@
 
         <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-3.2.1.min.js"><\/script>')</script>
+
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.2/vue.js"></script> -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.4/vue.min.js"></script>
         <script src="main.js"></script>
     </body>

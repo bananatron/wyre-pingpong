@@ -1,4 +1,5 @@
 var airtableApiKey = "keyhdUvEUU5IL7Aqs";
+var airtableMatchUrl = "https://api.airtable.com/v0/appAbzOBI0MLX1xzn/Matches";
 
 new Vue({
   el: '#standings',
@@ -10,6 +11,7 @@ new Vue({
     },
     matches: {},
     history: {
+      loading: false,
       show: false,
       player: null,
       matches: []
@@ -54,14 +56,18 @@ new Vue({
 
       if (Object.keys(_this.matches).length == 0) {
         
-        _this.fetchMatches(function() { // Fetch fresh
+        _this.fetchMatches(airtableMatchUrl, function() { // Fetch fresh
+
           playerMatches.forEach(function(match_id) { //Filter player matches
-            _this.history.matches.push(_this.matches[match_id])
+            if (_this.matches[match_id]) { // If match exists
+              _this.history.matches.push(_this.matches[match_id])
+            }
           })
+          _this.history.loading = false;
           _this.history.show = true;
         })
       } else { // Use cached data
-        console.log('Using cached math data');
+        console.log('Using cached match data');
         playerMatches.forEach(function(match_id) { //Filter player matches
           _this.history.matches.push(_this.matches[match_id])
         })
@@ -69,14 +75,16 @@ new Vue({
       }
     },
 
-    fetchMatches: function(callback) {
+    fetchMatches: function(url, callback) {
       _this = this;
+      _this.history.loading = true;
       console.log('Fetching match data from airtable');
 
       $.ajax({
-        url: "https://api.airtable.com/v0/appAbzOBI0MLX1xzn/Matches",
+        url: url,
         headers: {"Authorization": "Bearer " + airtableApiKey}
       }).done(function(data) {
+
         data.records.forEach(function(matchRecord) {
           _this.matches[matchRecord.id] = matchRecord.fields
 
@@ -93,7 +101,17 @@ new Vue({
           })
 
         })
-        if (callback) setTimeout(callback(), 400)
+
+        // If we have an offset, we only got a single page of results, we need to get
+        // the rest by passing in an offset param
+        if (data.offset) {
+          console.log('Getting another page from airtable', data.offset);
+          callback = callback || null
+          _this.fetchMatches(airtableMatchUrl + "?offset=" + data.offset, callback);
+        } else {
+          if (callback) setTimeout(callback(), 400)
+        }
+
       }).fail(function(data) {
           alert('‼️ Failure connecting to airtable for match data!');
           console.log('‼️ Failure connecting to airtable for match data!', data);
